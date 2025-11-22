@@ -8,7 +8,12 @@ public class Comanda {
     private Map<Produs, Integer> produse = new HashMap<>();
 
     // TVA fix (9%)
-    private static final double TVA = 0.09;
+    public static void setTva(double valoareTva) {
+        TVA = valoareTva;
+    }
+
+    private static  double TVA ;
+
 
     // Strategy pentru discount (ex: Happy Hour)
     private DiscountStrategy discountStrategy;

@@ -2,6 +2,13 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
+        // ====== ITERAȚIA 4 ======
+        Config config = Config.incarcaConfiguratia();
+
+        System.out.println("Aplicatia rulează pentru restaurantul: " + config.numeRestaurant);
+
+        // setăm TVA în Comanda
+        Comanda.setTva(config.tva);
 
         // ============================
         //        ITERATIA 1
@@ -140,5 +147,8 @@ public class Main {
                         p -> System.out.println("Produs găsit: " + p),
                         () -> System.out.println("Produsul \"" + numeCautat2 + "\" nu a fost găsit.")
                 );
+        // Export în JSON
+        meniu.exportToJson("menu.json");
+
     }
 }

@@ -1,5 +1,9 @@
 import java.util.*;
 import java.util.stream.Collectors;
+import com.google.gson.Gson;
+import java.io.FileWriter;
+import java.io.IOException;
+
 
 public class Meniu {
 
@@ -8,6 +12,20 @@ public class Meniu {
     public Meniu() {
         for (Categorie c : Categorie.values()) {
             categorii.put(c, new ArrayList<>());
+        }
+    }
+    // Exportăm meniul în format JSON
+    public void exportToJson(String filename) {
+
+        Gson gson = new Gson();
+
+        try (FileWriter writer = new FileWriter(filename)) {
+
+            gson.toJson(categorii, writer);
+            System.out.println("✔️ Meniul a fost exportat în " + filename);
+
+        } catch (IOException e) {
+            System.err.println("❗ Eroare la exportul meniului: " + e.getMessage());
         }
     }
 
