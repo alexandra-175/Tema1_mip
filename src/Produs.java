@@ -1,18 +1,19 @@
-// Clasa de bază pentru toate produsele din meniu
-public class Produs {
+public sealed class Produs permits Mancare, Bautura, Pizza {
 
-    // Atribute comune tuturor produselor
     protected String nume;
     protected double pret;
+    protected boolean vegetarian;
 
-    // Constructor care inițializează numele și prețul
-    public Produs(String nume, double pret) {
-        this.nume = nume;   // atribuim numele produsului
-        this.pret = pret;   // atribuim prețul produsului
+    public Produs(String nume, double pret, boolean vegetarian) {
+        this.nume = nume;
+        this.pret = pret;
+        this.vegetarian = vegetarian;
     }
 
-    // Metodă folosită pentru afișarea produsului sub formă de text
-    // Va fi suprascrisă în clasele copil pentru afișări specifice
+    public boolean isVegetarian() {
+        return vegetarian;
+    }
+
     @Override
     public String toString() {
         return nume + " - " + pret + " RON";
