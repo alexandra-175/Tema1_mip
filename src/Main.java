@@ -10,9 +10,8 @@ public class Main {
         // setăm TVA în Comanda
         Comanda.setTva(config.tva);
 
-        // ============================
+
         //        ITERATIA 1
-        // ============================
         System.out.println("---- Meniul Restaurantului \"La Andrei\" (Iterația 1) ----");
 
         ArrayList<Produs> meniuSimplu = new ArrayList<>();
@@ -34,9 +33,8 @@ public class Main {
         System.out.println();
 
 
-        // ============================
+
         //        ITERATIA 2
-        // ============================
         System.out.println("---- Sistem Comenzi Restaurant \"La Andrei\" (Iterația 2) ----");
 
         DiscountStrategy happyHour = new HappyHourStrategy();
@@ -56,9 +54,9 @@ public class Main {
         System.out.println();
 
 
-        // ============================
+
         //        ITERATIA 3
-        // ============================
+
         System.out.println("---- Meniu structurat pe categorii (Iterația 3) ----");
 
         Meniu meniu = new Meniu();

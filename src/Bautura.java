@@ -7,6 +7,10 @@ public final class Bautura extends Produs {
         this.volum = volum;
     }
 
+    public int getVolum() {
+        return volum;
+    }
+
     @Override
     public String toString() {
         return nume + " - " + pret + " RON - Volum: " + volum + "ml";

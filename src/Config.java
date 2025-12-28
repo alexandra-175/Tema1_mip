@@ -18,14 +18,14 @@ public class Config {
             return gson.fromJson(reader, Config.class);
 
         } catch (FileNotFoundException e) {
-            System.err.println("❗ Eroare: Fișierul config.json nu a fost găsit. Se folosesc valori implicite.");
+            System.err.println(" Eroare: Fișierul config.json nu a fost găsit. Se folosesc valori implicite.");
             Config defaultConfig = new Config();
             defaultConfig.numeRestaurant = "Restaurant Necunoscut";
             defaultConfig.tva = 0.09;
             return defaultConfig;
 
         } catch (JsonSyntaxException e) {
-            System.err.println("❗ Eroare: Fișierul config.json este corupt sau invalid. Se folosesc valori implicite.");
+            System.err.println(" Eroare: Fișierul config.json este corupt sau invalid. Se folosesc valori implicite.");
             Config defaultConfig = new Config();
             defaultConfig.numeRestaurant = "Restaurant Necunoscut";
             defaultConfig.tva = 0.09;

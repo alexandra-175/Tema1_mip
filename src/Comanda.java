@@ -1,7 +1,6 @@
 import java.util.HashMap;
 import java.util.Map;
 
-// Clasa Comanda gestionează produsele și calculele aferente
 public class Comanda {
 
     // Map care reține fiecare produs + cantitatea cerută
@@ -23,7 +22,6 @@ public class Comanda {
         this.discountStrategy = discountStrategy;
     }
 
-    // Adăugăm un produs împreună cu o cantitate (ex: 2 Pizza)
     public void adaugaProdus(Produs produs, int cantitate) {
         produse.put(produs, produse.getOrDefault(produs, 0) + cantitate);
     }

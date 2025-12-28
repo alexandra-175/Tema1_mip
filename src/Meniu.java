@@ -22,10 +22,10 @@ public class Meniu {
         try (FileWriter writer = new FileWriter(filename)) {
 
             gson.toJson(categorii, writer);
-            System.out.println("✔️ Meniul a fost exportat în " + filename);
+            System.out.println("✔ Meniul a fost exportat în " + filename);
 
         } catch (IOException e) {
-            System.err.println("❗ Eroare la exportul meniului: " + e.getMessage());
+            System.err.println(" Eroare la exportul meniului: " + e.getMessage());
         }
     }
 
@@ -68,4 +68,11 @@ public class Meniu {
                 .filter(p -> p.nume.equalsIgnoreCase(nume))
                 .findFirst();
     }
+    public List<Produs> toateProdusele() {
+        return categorii.values()
+                .stream()
+                .flatMap(List::stream)
+                .toList();
+    }
+
 }

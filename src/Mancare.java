@@ -7,6 +7,10 @@ public final class Mancare extends Produs {
         this.gramaj = gramaj;
     }
 
+    public int getGramaj() {
+        return gramaj;
+    }
+
     @Override
     public String toString() {
         return nume + " - " + pret + " RON - Gramaj: " + gramaj + "g";

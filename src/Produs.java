@@ -10,6 +10,14 @@ public sealed class Produs permits Mancare, Bautura, Pizza {
         this.vegetarian = vegetarian;
     }
 
+    public String getNume() {
+        return nume;
+    }
+
+    public double getPret() {
+        return pret;
+    }
+
     public boolean isVegetarian() {
         return vegetarian;
     }
