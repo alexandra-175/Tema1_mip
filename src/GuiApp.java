@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -9,12 +10,33 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class GuiApp extends Application {
 
     @Override
     public void start(Stage stage) {
         showLoginScreen(stage);
+    }
+
+    /* ===================== HELPER ASYNC ===================== */
+
+    private <T> void loadAsync(
+            Runnable onStart,
+            Callable<List<T>> taskWork,
+            java.util.function.Consumer<List<T>> onSuccess,
+            Runnable onFail
+    ) {
+        new Thread(() -> {
+            try {
+                Platform.runLater(onStart);
+                List<T> result = taskWork.call();
+                Platform.runLater(() -> onSuccess.accept(result));
+            } catch (Exception e) {
+                e.printStackTrace();
+                Platform.runLater(onFail);
+            }
+        }).start();
     }
 
     /* ===================== LOGIN ===================== */
@@ -52,12 +74,15 @@ public class GuiApp extends Application {
         TextArea detalii = new TextArea();
         detalii.setEditable(false);
 
-        try {
-            listaProduse.getItems().setAll(Database.loadProducts());
-        } catch (Exception ex) {
-            showError("Eroare DB");
-            return;
-        }
+        Label loading = new Label("Se încarcă produsele...");
+        listaProduse.setPlaceholder(loading);
+
+        loadAsync(
+                () -> loading.setText("Loading produse..."),
+                Database::loadProducts,
+                result -> listaProduse.getItems().setAll(result),
+                () -> showError("Eroare DB!")
+        );
 
         listaProduse.getSelectionModel().selectedItemProperty().addListener((o, v, p) -> {
             if (p == null) {
@@ -103,11 +128,15 @@ public class GuiApp extends Application {
         TextArea detalii = new TextArea();
         detalii.setEditable(false);
 
-        try {
-            listaProduse.getItems().setAll(Database.loadProducts());
-        } catch (Exception e) {
-            showError("Nu pot încărca produsele din DB");
-        }
+        Label loading = new Label("Loading produse...");
+        listaProduse.setPlaceholder(loading);
+
+        loadAsync(
+                () -> loading.setText("Se încarcă produsele..."),
+                Database::loadProducts,
+                result -> listaProduse.getItems().setAll(result),
+                () -> showError("Nu pot încărca produsele din DB")
+        );
 
         listaProduse.getSelectionModel().selectedItemProperty().addListener((obs,v,p) -> {
             if(p==null){
@@ -132,7 +161,6 @@ public class GuiApp extends Application {
 
         Button addBtn = new Button("Adaugă în coș");
 
-        // IMPORTANT — Coșul acceptă atât produse cât și reduceri
         ListView<Object> cos = new ListView<>();
         Label totalLabel = new Label("Total: 0 RON");
 
@@ -209,7 +237,6 @@ public class GuiApp extends Application {
         rightBottom.setPadding(new Insets(10));
 
         SplitPane right = new SplitPane(rightTop, rightBottom);
-        right.setOrientation(javafx.geometry.Orientation.VERTICAL);
         right.setDividerPositions(0.45);
 
         SplitPane main = new SplitPane(listaProduse, right);
@@ -232,7 +259,14 @@ public class GuiApp extends Application {
         t1.setClosable(false);
 
         ListView<String> istoric = new ListView<>();
-        istoric.getItems().setAll(Database.loadOrders());
+        istoric.setPlaceholder(new Label("Se încarcă comenzile..."));
+
+        loadAsync(
+                () -> {},
+                Database::loadOrders,
+                result -> istoric.getItems().setAll(result),
+                () -> showError("Nu pot încărca comenzile")
+        );
 
         Button refresh = new Button("Reîncarcă");
         refresh.setOnAction(e -> istoric.getItems().setAll(Database.loadOrders()));
@@ -253,7 +287,7 @@ public class GuiApp extends Application {
         stage.show();
     }
 
-    /* ===================== DISCOUNT LOGIC ===================== */
+    /* ===================== DISCOUNT ===================== */
 
     private void calculeazaTotal(ListView<Object> cos, Label totalLabel) {
 
@@ -304,14 +338,29 @@ public class GuiApp extends Application {
         ListView<String> listaComenzi = new ListView<>();
         ListView<String> listaDetalii = new ListView<>();
 
-        listaComenzi.getItems().setAll(Database.loadOrders());
+        listaComenzi.setPlaceholder(new Label("Loading comenzi..."));
+
+        loadAsync(
+                () -> {},
+                Database::loadOrders,
+                result -> listaComenzi.getItems().setAll(result),
+                () -> showError("Nu pot încărca comenzile")
+        );
 
         listaComenzi.getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
             if (val == null) return;
 
+            listaDetalii.setPlaceholder(new Label("Loading..."));
+
             String idPart = val.split("\\|")[0];
             int orderId = Integer.parseInt(idPart.replaceAll("[^0-9]", ""));
-            listaDetalii.getItems().setAll(Database.loadOrderDetails(orderId));
+
+            loadAsync(
+                    () -> {},
+                    () -> Database.loadOrderDetails(orderId),
+                    result -> listaDetalii.getItems().setAll(result),
+                    () -> showError("Nu pot încărca detalii comandă!")
+            );
         });
 
         SplitPane split = new SplitPane(listaComenzi, listaDetalii);
