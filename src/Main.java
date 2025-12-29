@@ -36,6 +36,6 @@ public class Main {
         System.out.println("Meniul a fost salvat în baza de date.");
 
         // ================== PORNIM INTERFAȚA GRAFICĂ ==================
-        GuiApp.main(args);
+        //GuiApp.main(args);
     }
 }

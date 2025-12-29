@@ -17,15 +17,13 @@ public class GuiApp extends Application {
         showLoginScreen(stage);
     }
 
-    /* =====================  ECRAN LOGIN  ===================== */
+    /* ===================== LOGIN ===================== */
 
     private void showLoginScreen(Stage stage) {
         Label title = new Label("Restaurant La Andrei");
         title.setStyle("-fx-font-size: 20px; -fx-font-weight: bold;");
 
         Label subtitle = new Label("Alege rolul cu care intri în aplicație:");
-        subtitle.setStyle("-fx-font-size: 14px;");
-
         Button clientBtn = new Button("Client");
         Button ospatarBtn = new Button("Ospătar");
         Button managerBtn = new Button("Manager");
@@ -34,7 +32,6 @@ public class GuiApp extends Application {
         ospatarBtn.setPrefWidth(150);
         managerBtn.setPrefWidth(150);
 
-        // ----- ACȚIUNI BUTOANE -----
         clientBtn.setOnAction(e -> showClientScreen(stage));
         ospatarBtn.setOnAction(e -> showOspatarScreen(stage));
         managerBtn.setOnAction(e -> showManagerScreen(stage));
@@ -43,147 +40,293 @@ public class GuiApp extends Application {
         root.setAlignment(Pos.CENTER);
         root.setPadding(new Insets(30));
 
-        Scene scene = new Scene(root, 400, 250);
+        stage.setScene(new Scene(root, 400, 250));
         stage.setTitle("Login - Restaurant La Andrei");
-        stage.setScene(scene);
         stage.show();
     }
 
-    /* =====================  ECRAN CLIENT (Guest Mode)  ===================== */
+    /* ===================== CLIENT ===================== */
 
     private void showClientScreen(Stage stage) {
-        // Listă cu produse (stânga)
         ListView<Produs> listaProduse = new ListView<>();
-
-        // Detalii produs (dreapta)
         TextArea detalii = new TextArea();
         detalii.setEditable(false);
 
-        // TODO: aici folosim baza de date (clasa ta Database) ca în Iterația 6.
-        //      ADAPTEAZĂ numele metodei astfel încât să folosești exact ce foloseai înainte
-        //      când îți încărcai produsele pentru GUI.
-
         try {
-            // Exemplu generic – schimbă Database.getAllProduse() cu metoda ta reală
-            List<Produs> produse = Database.loadProducts();
-            // <<< ADAPTEAZĂ AICI
-            listaProduse.getItems().setAll(produse);
-            System.out.println("Produsele au fost încărcate din baza de date (Client Mode).");
+            listaProduse.getItems().setAll(Database.loadProducts());
         } catch (Exception ex) {
-            ex.printStackTrace();
-            showError("Eroare la încărcarea produselor din baza de date:\n" + ex.getMessage());
+            showError("Eroare DB");
+            return;
         }
 
-        // Când selectez un produs -> afișez detalii
-        listaProduse.getSelectionModel().selectedItemProperty().addListener((obs, vechi, produs) -> {
-            if (produs == null) {
+        listaProduse.getSelectionModel().selectedItemProperty().addListener((o, v, p) -> {
+            if (p == null) {
                 detalii.clear();
                 return;
             }
 
-            StringBuilder text = new StringBuilder();
-            text.append("Nume: ").append(produs.getNume()).append("\n");
-            text.append("Preț: ").append(produs.getPret()).append(" RON\n");
-            text.append("Vegetarian: ").append(produs.isVegetarian() ? "DA" : "NU").append("\n");
+            StringBuilder t = new StringBuilder();
+            t.append("Nume: ").append(p.getNume()).append("\n");
+            t.append("Preț: ").append(p.getPret()).append(" RON\n");
+            t.append("Vegetarian: ").append(p.isVegetarian() ? "DA" : "NU").append("\n");
 
-            if (produs instanceof Mancare m) {
-                text.append("Tip: Mâncare\n");
-                text.append("Gramaj: ").append(m.getGramaj()).append(" g\n");
-            }
+            if (p instanceof Mancare m) t.append("Gramaj: ").append(m.getGramaj()).append(" g\n");
+            if (p instanceof Bautura b) t.append("Volum: ").append(b.getVolum()).append(" ml\n");
 
-            if (produs instanceof Bautura b) {
-                text.append("Tip: Băutură\n");
-                text.append("Volum: ").append(b.getVolum()).append(" ml\n");
-            }
-
-            detalii.setText(text.toString());
+            detalii.setText(t.toString());
         });
 
-        // Layout: stânga listă, dreapta detalii
+        SplitPane splitPane = new SplitPane(listaProduse, detalii);
+        splitPane.setDividerPositions(0.4);
+
+        Button back = new Button("← Înapoi");
+        back.setOnAction(e -> showLoginScreen(stage));
+
         BorderPane root = new BorderPane();
-        VBox layout = new VBox(filters, splitPane);
-        root.setCenter(layout);
+        root.setTop(back);
+        root.setCenter(splitPane);
 
-        root.setLeft(listaProduse);
-        root.setCenter(detalii);
-
-        BorderPane.setMargin(listaProduse, new Insets(10));
-        BorderPane.setMargin(detalii, new Insets(10));
-
-        // Bară de sus simplă cu buton de întoarcere la login
-        Button backBtn = new Button("← Înapoi la Login");
-        backBtn.setOnAction(e -> showLoginScreen(stage));
-        HBox topBar = new HBox(backBtn);
-        topBar.setPadding(new Insets(5));
-        root.setTop(topBar);
-
-        Scene scene = new Scene(root, 700, 450);
-        stage.setTitle("Client - Restaurant La Andrei");
-        stage.setScene(scene);
+        stage.setScene(new Scene(root, 900, 550));
+        stage.setTitle("Client");
         stage.show();
-
-
-        ComboBox<String> filterVeg = new ComboBox<>();
-        filterVeg.getItems().addAll("Toate", "Vegetariene", "Non-Vegetariene");
-        filterVeg.setValue("Toate");
-
-        ComboBox<String> filterTip = new ComboBox<>();
-        filterTip.getItems().addAll("Toate", "Mancare", "Bautura");
-        filterTip.setValue("Toate");
-
-        TextField minPrice = new TextField();
-        minPrice.setPromptText("Min");
-
-        TextField maxPrice = new TextField();
-        maxPrice.setPromptText("Max");
-
-        TextField search = new TextField();
-        search.setPromptText("Cauta produs...");
-
-        HBox filters = new HBox(10, filterVeg, filterTip, minPrice, maxPrice, search);
-        filters.setPadding(new Insets(10));
-
     }
 
-    /* =====================  ECRAN OSPĂTAR (placeholder)  ===================== */
+    /* ===================== OSPĂTAR ===================== */
 
     private void showOspatarScreen(Stage stage) {
-        Label label = new Label("Ecranul pentru Ospătar încă nu este implementat.\n"
-                + "Îl facem după ce terminăm complet modul Client. 🙂");
+
+        ComboBox<Integer> masaCombo = new ComboBox<>();
+        masaCombo.getItems().addAll(1,2,3,4,5);
+        masaCombo.setPromptText("Selectează masa");
+
+        ListView<Produs> listaProduse = new ListView<>();
+        TextArea detalii = new TextArea();
+        detalii.setEditable(false);
+
+        try {
+            listaProduse.getItems().setAll(Database.loadProducts());
+        } catch (Exception e) {
+            showError("Nu pot încărca produsele din DB");
+        }
+
+        listaProduse.getSelectionModel().selectedItemProperty().addListener((obs,v,p) -> {
+            if(p==null){
+                detalii.clear();
+                return;
+            }
+
+            StringBuilder t=new StringBuilder();
+            t.append("Nume: ").append(p.getNume()).append("\n");
+            t.append("Preț: ").append(p.getPret()).append(" RON\n");
+            t.append("Vegetarian: ").append(p.isVegetarian()?"DA":"NU").append("\n");
+
+            if(p instanceof Mancare m){
+                t.append("Tip: Mâncare\nGramaj: ").append(m.getGramaj()).append(" g\n");
+            }
+            if(p instanceof Bautura b){
+                t.append("Tip: Băutură\nVolum: ").append(b.getVolum()).append(" ml\n");
+            }
+
+            detalii.setText(t.toString());
+        });
+
+        Button addBtn = new Button("Adaugă în coș");
+
+        // IMPORTANT — Coșul acceptă atât produse cât și reduceri
+        ListView<Object> cos = new ListView<>();
+        Label totalLabel = new Label("Total: 0 RON");
+
+        addBtn.setOnAction(e -> {
+            Produs p = listaProduse.getSelectionModel().getSelectedItem();
+
+            if(masaCombo.getValue() == null){
+                showError("Selectează mai întâi masa!");
+                return;
+            }
+
+            if(p==null){
+                showError("Selectează un produs!");
+                return;
+            }
+
+            cos.getItems().add(p);
+            calculeazaTotal(cos,totalLabel);
+        });
+
+        Button removeBtn = new Button("Șterge din coș");
+        removeBtn.setOnAction(e -> {
+            Object sel = cos.getSelectionModel().getSelectedItem();
+            if(sel instanceof Produs){
+                cos.getItems().remove(sel);
+                calculeazaTotal(cos,totalLabel);
+            }
+        });
+
+        Button finalizeBtn = new Button("Finalizează comanda");
+        finalizeBtn.setOnAction(e -> {
+            if(masaCombo.getValue()==null){
+                showError("Selectează masa!");
+                return;
+            }
+
+            if(cos.getItems().isEmpty()){
+                showError("Coșul este gol!");
+                return;
+            }
+
+            double total = cos.getItems().stream()
+                    .filter(o -> o instanceof Produs)
+                    .map(o -> (Produs)o)
+                    .mapToDouble(Produs::getPret)
+                    .sum();
+
+            Database.saveOrder(
+                    masaCombo.getValue(),
+                    cos.getItems().stream()
+                            .filter(o -> o instanceof Produs)
+                            .map(o -> (Produs)o)
+                            .toList(),
+                    total
+            );
+
+            showInfo("Comandă salvată!");
+            cos.getItems().clear();
+            totalLabel.setText("Total: 0 RON");
+        });
+
+        VBox rightTop = new VBox(detalii, addBtn);
+        rightTop.setSpacing(10);
+        rightTop.setPadding(new Insets(10));
+
+        VBox rightBottom = new VBox(
+                new Label("Comandă curentă:"),
+                cos,
+                removeBtn,
+                totalLabel,
+                finalizeBtn
+        );
+        rightBottom.setSpacing(10);
+        rightBottom.setPadding(new Insets(10));
+
+        SplitPane right = new SplitPane(rightTop, rightBottom);
+        right.setOrientation(javafx.geometry.Orientation.VERTICAL);
+        right.setDividerPositions(0.45);
+
+        SplitPane main = new SplitPane(listaProduse, right);
+        main.setDividerPositions(0.35);
 
         Button backBtn = new Button("← Înapoi la Login");
         backBtn.setOnAction(e -> showLoginScreen(stage));
 
-        VBox root = new VBox(15, label, backBtn);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(20));
+        HBox top = new HBox(backBtn, new Label("   Masa: "), masaCombo);
+        top.setSpacing(10);
+        top.setPadding(new Insets(10));
 
-        Scene scene = new Scene(root, 500, 250);
-        stage.setTitle("Ospătar - în lucru");
-        stage.setScene(scene);
+        BorderPane comandaPane = new BorderPane();
+        comandaPane.setTop(top);
+        comandaPane.setCenter(main);
+
+        TabPane tabs = new TabPane();
+
+        Tab t1 = new Tab("Comandă Nouă", comandaPane);
+        t1.setClosable(false);
+
+        ListView<String> istoric = new ListView<>();
+        istoric.getItems().setAll(Database.loadOrders());
+
+        Button refresh = new Button("Reîncarcă");
+        refresh.setOnAction(e -> istoric.getItems().setAll(Database.loadOrders()));
+
+        VBox historyLayout = new VBox(10, refresh, istoric);
+        historyLayout.setPadding(new Insets(10));
+
+        Tab t2 = new Tab("Istoric Comenzi", historyLayout);
+        t2.setClosable(false);
+
+        tabs.getTabs().addAll(t1,t2);
+
+        BorderPane root = new BorderPane();
+        root.setCenter(tabs);
+
+        stage.setScene(new Scene(root, 950, 600));
+        stage.setTitle("Ospătar");
         stage.show();
     }
 
-    /* =====================  ECRAN MANAGER (placeholder)  ===================== */
+    /* ===================== DISCOUNT LOGIC ===================== */
+
+    private void calculeazaTotal(ListView<Object> cos, Label totalLabel) {
+
+        double totalProduse = cos.getItems().stream()
+                .filter(o -> o instanceof Produs)
+                .map(o -> (Produs)o)
+                .mapToDouble(Produs::getPret)
+                .sum();
+
+        double discount = 0;
+
+        cos.getItems().removeIf(it -> it instanceof String && it.toString().startsWith("Reducere"));
+
+        var bauturi = cos.getItems().stream()
+                .filter(o -> o instanceof Bautura)
+                .map(o -> (Produs)o)
+                .sorted((a,b) -> Double.compare(a.getPret(), b.getPret()))
+                .toList();
+
+        if(bauturi.size() >= 2){
+            for(int i=1; i<bauturi.size(); i+=2){
+                double reducere = bauturi.get(i).getPret() / 2;
+                discount += reducere;
+                cos.getItems().add("Reducere Happy Hour: -" + reducere + " RON");
+            }
+        }
+
+        var pizza = cos.getItems().stream()
+                .filter(o -> o instanceof Mancare)
+                .map(o -> (Produs)o)
+                .filter(p -> p.getNume().toLowerCase().contains("pizza"))
+                .sorted((a,b)->Double.compare(a.getPret(), b.getPret()))
+                .toList();
+
+        if(pizza.size() >= 4){
+            double reducere = pizza.get(0).getPret();
+            discount += reducere;
+            cos.getItems().add("Reducere Party Pack Pizza: -" + reducere + " RON");
+        }
+
+        totalLabel.setText("Total: " + (totalProduse - discount) + " RON");
+    }
+
+    /* ===================== MANAGER ===================== */
 
     private void showManagerScreen(Stage stage) {
-        Label label = new Label("Ecranul pentru Manager încă nu este implementat.\n"
-                + "Îl facem după ce terminăm Client și Ospătar. 👀");
 
-        Button backBtn = new Button("← Înapoi la Login");
+        ListView<String> listaComenzi = new ListView<>();
+        ListView<String> listaDetalii = new ListView<>();
+
+        listaComenzi.getItems().setAll(Database.loadOrders());
+
+        listaComenzi.getSelectionModel().selectedItemProperty().addListener((obs, old, val) -> {
+            if (val == null) return;
+
+            String idPart = val.split("\\|")[0];
+            int orderId = Integer.parseInt(idPart.replaceAll("[^0-9]", ""));
+            listaDetalii.getItems().setAll(Database.loadOrderDetails(orderId));
+        });
+
+        SplitPane split = new SplitPane(listaComenzi, listaDetalii);
+        split.setDividerPositions(0.4);
+
+        Button backBtn = new Button("← Înapoi");
         backBtn.setOnAction(e -> showLoginScreen(stage));
 
-        VBox root = new VBox(15, label, backBtn);
-        root.setAlignment(Pos.CENTER);
-        root.setPadding(new Insets(20));
+        VBox root = new VBox(10, backBtn, split);
+        root.setPadding(new Insets(10));
 
-        Scene scene = new Scene(root, 500, 250);
-        stage.setTitle("Manager - în lucru");
-        stage.setScene(scene);
+        stage.setScene(new Scene(root, 800, 500));
+        stage.setTitle("Manager");
         stage.show();
     }
-
-    /* =====================  HELPER ALERTS  ===================== */
 
     private void showError(String msg) {
         Alert a = new Alert(Alert.AlertType.ERROR, msg);
@@ -191,7 +334,9 @@ public class GuiApp extends Application {
         a.showAndWait();
     }
 
-    public static void main(String[] args) {
-        launch();
+    private void showInfo(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION, msg);
+        a.setHeaderText("Info");
+        a.showAndWait();
     }
 }

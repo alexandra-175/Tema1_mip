@@ -82,4 +82,87 @@ public class Database {
 
         return list;
     }
+    public static void saveOrder(int masa, List<Produs> produse, double total) {
+        String insertOrder = "INSERT INTO comenzi(masa, total) VALUES (?, ?) RETURNING id";
+        String insertProd = "INSERT INTO comenzi_produse(comanda_id, produs, pret) VALUES (?, ?, ?)";
+
+        try (Connection conn = getConnection()) {
+            conn.setAutoCommit(false);
+
+            int comandaId;
+
+            try (PreparedStatement st = conn.prepareStatement(insertOrder)) {
+                st.setInt(1, masa);
+                st.setDouble(2, total);
+                ResultSet rs = st.executeQuery();
+                rs.next();
+                comandaId = rs.getInt(1);
+            }
+
+            try (PreparedStatement st = conn.prepareStatement(insertProd)) {
+                for (Produs p : produse) {
+                    st.setInt(1, comandaId);
+                    st.setString(2, p.toString());
+                    st.setDouble(3, p.getPret());
+                    st.executeUpdate();
+                }
+            }
+
+            conn.commit();
+            System.out.println("✔ Comandă salvată în DB!");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public static List<String> loadOrders() {
+        List<String> list = new ArrayList<>();
+
+        String sql = "SELECT c.id, c.masa, c.total " +
+                "FROM comenzi c ORDER BY c.id DESC";
+
+        try (Connection conn = getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) {
+                list.add("Comanda #" + rs.getInt("id")
+                        + " | Masa " + rs.getInt("masa")
+                        + " | Total: " + rs.getDouble("total") + " RON");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+    public static List<String> loadOrderDetails(int id) {
+        List<String> list = new ArrayList<>();
+
+        String sql = """
+        SELECT produs, pret 
+        FROM comenzi_produse 
+        WHERE comanda_id = ?
+    """;
+
+        try (Connection conn = getConnection();
+             PreparedStatement st = conn.prepareStatement(sql)) {
+
+            st.setInt(1, id);
+            ResultSet rs = st.executeQuery();
+
+            while (rs.next()) {
+                list.add(rs.getString("produs") + " - " +
+                        rs.getDouble("pret") + " RON");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return list;
+    }
+
+
+
 }
